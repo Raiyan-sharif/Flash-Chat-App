@@ -14,6 +14,8 @@ class ChatViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var messageTextfield: UITextField!
     
+    let db = Firestore.firestore()
+    
     var messages: [Message] = [ Message(sender: "1@2.com", body: "Hello"),
                                 Message(sender: "a@b.com", body: "Hey!"),
                                 Message(sender: "1@2.com", body: "What's up?")
@@ -27,12 +29,49 @@ class ChatViewController: UIViewController {
         navigationItem.hidesBackButton = true
         
         tableView.register(UINib(nibName: Constants.cellNibName, bundle: nil), forCellReuseIdentifier: Constants.cellIdentifier)
+        loadMessages()
         
         
         
     }
+    func loadMessages(){
+        
+        db.collection(Constants.FStore.collectionName)
+            .order(by: Constants.FStore.dateField)
+            .addSnapshotListener { (querySnapshot, error) in
+            self.messages = []
+            if let e = error{
+                print("There was an issue retrieving data from Fire Strore : \(e)")
+            }else{
+                if let snapShotDocumnets = querySnapshot?.documents{
+                    for doc in snapShotDocumnets{
+                        let data = doc.data()
+                        if let sender = data[Constants.FStore.senderField] as? String, let body = data[Constants.FStore.bodyField] as? String{
+                            self.messages.append(Message(sender: sender, body: body))
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData() 
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     
     @IBAction func sendPressed(_ sender: UIButton) {
+        
+        if let messageSender = Auth.auth().currentUser?.email, let messageBody = messageTextfield.text{
+//            messages.append(Message(sender: messageSender, body: messageBody))
+//            tableView.reloadData()
+            db.collection(Constants.FStore.collectionName).addDocument(data: [Constants.FStore.senderField : messageSender, Constants.FStore.bodyField : messageBody, Constants.FStore.dateField: Data() ]) { (error) in
+                if let e = error{
+                    print("There was an issue saving data to firestore \(e)")
+                }
+            }
+            
+        }
     }
     
 
