@@ -16,10 +16,7 @@ class ChatViewController: UIViewController {
     
     let db = Firestore.firestore()
     
-    var messages: [Message] = [ Message(sender: "1@2.com", body: "Hello"),
-                                Message(sender: "a@b.com", body: "Hey!"),
-                                Message(sender: "1@2.com", body: "What's up?")
-    ]
+    var messages: [Message] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,7 +46,9 @@ class ChatViewController: UIViewController {
                         if let sender = data[Constants.FStore.senderField] as? String, let body = data[Constants.FStore.bodyField] as? String{
                             self.messages.append(Message(sender: sender, body: body))
                             DispatchQueue.main.async {
-                                self.tableView.reloadData() 
+                                self.tableView.reloadData()
+                                let indexPath = IndexPath(row: self.messages.count - 1, section: 0)
+                                self.tableView.scrollToRow(at: indexPath, at: .top, animated: false)
                             }
                             
                         }
@@ -65,13 +64,20 @@ class ChatViewController: UIViewController {
         if let messageSender = Auth.auth().currentUser?.email, let messageBody = messageTextfield.text{
 //            messages.append(Message(sender: messageSender, body: messageBody))
 //            tableView.reloadData()
-            db.collection(Constants.FStore.collectionName).addDocument(data: [Constants.FStore.senderField : messageSender, Constants.FStore.bodyField : messageBody, Constants.FStore.dateField: Data() ]) { (error) in
+            db.collection(Constants.FStore.collectionName).addDocument(data: [Constants.FStore.senderField : messageSender, Constants.FStore.bodyField : messageBody, Constants.FStore.dateField: Date().timeIntervalSince1970]) { (error) in
                 if let e = error{
                     print("There was an issue saving data to firestore \(e)")
+                }
+                else{
+                    DispatchQueue.main.async {
+                        self.messageTextfield.text = ""
+                    }
+                    
                 }
             }
             
         }
+        
     }
     
 
@@ -93,8 +99,22 @@ extension ChatViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let message = messages[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellIdentifier, for: indexPath) as! MessageCell
-        cell.label.text = messages[indexPath.row].body
+        cell.label.text = message.body
+        if message.sender == Auth.auth().currentUser?.email{
+            cell.leftImageView.isHidden = true
+            cell.rightImageView.isHidden = false
+            cell.messageBubble.backgroundColor = UIColor(named: Constants.BrandColors.lightPurple)
+            cell.label.textColor = UIColor(named: Constants.BrandColors.purple)
+        }
+        else{
+            cell.leftImageView.isHidden = false
+            cell.rightImageView.isHidden = true
+            cell.messageBubble.backgroundColor = UIColor(named: Constants.BrandColors.purple)
+            cell.label.textColor = UIColor(named: Constants.BrandColors.lightPurple)
+        }
+        
         return cell
     }
     
