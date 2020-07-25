@@ -16,7 +16,7 @@ class WelcomeViewController: UIViewController {
         super.viewDidLoad()
         
         
-        let titleText = "⚡️FlashChat"
+        let titleText = Constants.appName
         titleLabel.text = ""
         var charIndex = 0
         for titleChar in titleText{
