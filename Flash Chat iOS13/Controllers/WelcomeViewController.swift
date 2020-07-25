@@ -12,9 +12,13 @@ class WelcomeViewController: UIViewController {
 
     @IBOutlet weak var titleLabel: UILabel!
     
+    override func viewWillAppear(_ animated: Bool) {
+        navigationController?.isNavigationBarHidden = true
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         
         let titleText = Constants.appName
         titleLabel.text = ""
@@ -27,6 +31,9 @@ class WelcomeViewController: UIViewController {
             
         }
        
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        navigationController?.isNavigationBarHidden = false
     }
     
 
