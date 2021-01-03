@@ -16,6 +16,7 @@ class ChatViewController: UIViewController {
     
     let db = Firestore.firestore()
     var receiver: String = "2@gmail.com"
+    var senderOfmessage: String = ""
     
 //    var messages: [Message] = []
     
@@ -35,9 +36,16 @@ class ChatViewController: UIViewController {
         
     }
     func loadMessages(){
+        if let currentSender = Auth.auth().currentUser?.email{
+            self.senderOfmessage = currentSender
+            print(self.senderOfmessage)
+        }
+        
         
         db.collection(Constants.FStore.collectionName)
-            .order(by: Constants.FStore.dateField).whereField("receiver", in: [receiver])
+            .whereField("receiver", isEqualTo: receiver)
+            .whereField("sender", isEqualTo: self.senderOfmessage)
+            .order(by: Constants.FStore.dateField)
             .addSnapshotListener { (querySnapshot, error) in
             self.messages2 = []
             
@@ -81,6 +89,9 @@ class ChatViewController: UIViewController {
             }
             
         }
+        loadMessages()
+        tableView.reloadData()
+        self.messageTextfield.text = ""
         
     }
     
