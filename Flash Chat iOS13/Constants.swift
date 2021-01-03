@@ -22,7 +22,7 @@ struct Constants{
         static let lightBlue = "BrandLightBlue"
     }
     struct FStore{
-        static let collectionName = "messages"
+        static let collectionName = "messages2"
         static let senderField = "sender"
         static let bodyField = "body"
         static let dateField = "date"
